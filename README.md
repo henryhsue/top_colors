@@ -1,6 +1,6 @@
 # How to Run:
 1. `go run main.go`
-This runs with shortened (30 URL) inputShort.txt. You can change to 1000 URLS swapping in intput.txt in main.go
+This runs with shortened (30 URL) inputShort.txt. You can change to 1000 URLS by swapping for intput.txt in main.go
 
 2. While running: `tail -f top3ColorsPerURL.txt`
 Results are always rewritten with each invocation of `main`.
