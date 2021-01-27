@@ -82,59 +82,68 @@ func main() {
 
 	// create queue
 	/*
-		TODO:
-		- how many goroutines to run?
-			limit by "Buffered Channel Semaphore"
-		- implement priority queue
-			- have goroutine download images on the side
-			- place images into a queue
-			- have another goroutine pull images off the queue
-		- use channel for buffered queue
-			- close channel after completed?
-				- or let it drain
-			- buffered channel
-			- how to make multiple goroutines read off queue?
-				- pg. 233
+			TODO:
+			- how many goroutines to run?
+				limit by "Buffered Channel Semaphore"
+			- implement priority queue
+				- have goroutine download images on the side
+				- place images into a queue
+				- have another goroutine pull images off the queue
+			- use channel for buffered queue
+				- close channel after completed?
+					- or let it drain
+				- buffered channel
+				- how to make multiple goroutines read off queue?
+					- pg. 233
+		    - current issues
+				- we open too many goroutines
+					- due to scanner.Scan
 	*/
 	// loop through images
 	queue := make(chan image.Image, 10)
-	for scanner.Scan() {
-		url := scanner.Text()
-		fmt.Println(url)
+	go func() {
+		for scanner.Scan() {
+			url := scanner.Text()
+			fmt.Println(url)
 
-		// fetch image
-		resp, err := http.Get(url)
-		if err != nil {
+			// fetch image
+			resp, err := http.Get(url)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			// decode image
+			img, err := jpeg.Decode(resp.Body)
+			if err != nil {
+				log.Println("decode error: ", err, " skipping ", url)
+				continue
+			}
+			queue <- img
+			fmt.Println("queue size", cap(queue))
+			resp.Body.Close()
+		}
+		if err := scanner.Err(); err != nil {
 			log.Fatal(err)
 		}
+	}()
 
-		// decode image
-		img, err := jpeg.Decode(resp.Body)
-		if err != nil {
-			log.Println("decode error: ", err, " skipping ", url)
-			continue
+	go func() {
+		for {
+			// pop off queue
+			img := <-queue
+
+			// count colors
+			colorCount := countColors(img)
+			top3Colors := getTop3Colors(colorCount)
+			line := fmt.Sprintf("%v, %v, %v, %v\n", "<url>", top3Colors[0], top3Colors[1], top3Colors[2])
+
+			// write count to file
+			if _, err = f.WriteString(line); err != nil {
+				log.Fatal(err)
+			}
+
 		}
-		queue <- img
-		fmt.Println("queue size", cap(queue))
-		resp.Body.Close()
-	}
-
-	for img := range queue {
-		// count colors
-		colorCount := countColors(img)
-		top3Colors := getTop3Colors(colorCount)
-		line := fmt.Sprintf("%v, %v, %v, %v\n", "<url>", top3Colors[0], top3Colors[1], top3Colors[2])
-
-		// write count to file
-		if _, err = f.WriteString(line); err != nil {
-			log.Fatal(err)
-		}
-
-	}
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-
+	}()
 }
 
 func countColors(img image.Image) map[string]int {
