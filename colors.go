@@ -101,8 +101,8 @@ func main() {
 	*/
 	// loop through images
 	queue := make(chan image.Image, 10)
-	go func() {
-		for scanner.Scan() {
+	for scanner.Scan() {
+		go func() {
 			url := scanner.Text()
 			fmt.Println(url)
 
@@ -116,16 +116,16 @@ func main() {
 			img, err := jpeg.Decode(resp.Body)
 			if err != nil {
 				log.Println("decode error: ", err, " skipping ", url)
-				continue
+				return
 			}
 			queue <- img
 			fmt.Println("queue size", cap(queue))
 			resp.Body.Close()
-		}
-		if err := scanner.Err(); err != nil {
-			log.Fatal(err)
-		}
-	}()
+		}()
+	}
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
 
 	go func() {
 		for {
