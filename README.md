@@ -21,16 +21,13 @@ Zaneta: " Please note that you'll be assessed on how you would deal with a probl
 
 # Henry's Notes:
 
-## Initial Thoughts:
+## Initial Thoughts and Assumptions:
 
-need to handle a billion URLs 
-    -> must throttle to prevent resource contention (limited memory, file descriptors, network bottlenecks, etc...)
-Focus
-    focus on speed with limited resources
-    Zaneta: do not focus on algorithms, but rather how to deal with problem at scale
-CPU: can be multicore or hyperthreaded.
+Need to handle a billion URLs. Must throttle to prevent resource depletion (limited memory, file descriptors, network bottlenecks, etc...)
 
-If problem allows for multiple 1CPU/512MB RAM machines, then we can break apart problem into separate distributed 
+Focus: on speed with limited resources (1CPU/512MB RAM). However, CPU can be multicore or hyperthreaded.
+
+If problem allowed for *multiple* 1CPU/512MB RAM machines, then we can break apart problem into separate distributed 
 components with multiple worker instances. e.g I do a producer -> consumer pipeline, but the producers and consumers and queue
 could all be separate applications, each with 1CPU/512MB RAM. I assume the problem is not asking for this type of solution.
 
