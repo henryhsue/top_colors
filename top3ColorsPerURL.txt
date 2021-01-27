@@ -1,0 +1,4 @@
+http://i.imgur.com/FApqk3D.jpg, #ffffffffffff, #000000, #f3d0c3a500
+http://i.imgur.com/TKLs9lo.jpg, #ffffffffffff, #fefefefefefe, #f7f7f7f7f7f7
+https://i.redd.it/4m5yk8gjrtzy.jpg, #101101101, #2674a101, #3ce00101
+https://i.redd.it/xae65ypfqycy.jpg, #f4f4f4f4f4f4, #c8543a4b2e3a, #c2bd455741a8
