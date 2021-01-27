@@ -1,5 +1,4 @@
 # How to Run:
-----------------------------------------------------------------------------------------
 1. `go run main.go`
 This runs with shortened (30 URL) inputShort.txt. You can change to 1000 URLS swapping in intput.txt in main.go
 2. after completion, view results in top3ColorsPerURL.txt (csv with url,color,color,color).
@@ -8,7 +7,6 @@ Results are always rewritten with each invocation of `main`.
 
 
 # Prompt:
-----------------------------------------------------------------------------------------
 Bellow is a list of links leading to an image, read this list of images and find 3 most
 prevalent colors in the RGB scheme in hexadecimal format (#000000 - #FFFFFF) in each image,
 and write the result into a CSV file in a form of url,color,color,color.
@@ -22,7 +20,6 @@ Answer should be posted in a git repo.
 Zaneta: " Please note that you'll be assessed on how you would deal with a problem at scale rather than on your ability to select the best algorithm, so focus on the problem, not the algorithms." 
 
 # Henry's Notes:
-----------------------------------------------------------------------------------------
 
 ## Initial Thoughts:
 
