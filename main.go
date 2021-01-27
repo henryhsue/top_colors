@@ -11,7 +11,7 @@ import (
 	"os"
 	"runtime"
 
-	"./topk"
+	"./topk" // borrowed a standard priority queue implementation for go
 )
 
 type QueueElement struct {
@@ -44,7 +44,9 @@ func main() {
 	// loop through images
 	queue := make(chan QueueElement, 10)
 	lines := make(chan string)
-	// NOTE: queue saturates quickly, bottlenecked by consumers, so adding parallelism at producers is not beneficial in current design.
+	// NOTE: queue saturates quickly, bottlenecked by consumers,
+	// so adding parallelism at producers is not beneficial in current design,
+	// or until resources are added to consumers.
 	go func() {
 		for scanner.Scan() {
 			url := scanner.Text()

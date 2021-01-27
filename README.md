@@ -10,6 +10,7 @@ but make sure you are utilizing the provided resources as much as possible at an
 
 Answer should be posted in a git repo.
 
+Zaneta: " Please note that you'll be assessed on how you would deal with a problem at scale rather than on your ability to select the best algorithm, so focus on the problem, not the algorithms." 
 
 # Henry's Notes:
 ----------------------------------------------------------------------------------------
@@ -23,6 +24,12 @@ Focus
     Zaneta: do not focus on algorithms, but rather how to deal with problem at scale
 CPU: can be multicore or hyperthreaded.
 
+If problem allows for multiple 1CPU/512MB RAM machines, then we can break apart problem into separate distributed 
+components with multiple worker instances. e.g I do a producer -> consumer pipeline, but the producers and consumers and queue
+could all be separate applications, each with 1CPU/512MB RAM. I assume the problem is not asking for this type of solution.
+
+I also make assumptions on the size of the image. If an image is very large, it may not fit into 512MB memory, and we
+will need to break apart the image into multiple subproblems. A system with a map-reduce paradigm may work better here.
 
 ## General Idea:
 
@@ -41,7 +48,7 @@ count the most prevalent colors for an image
 append to CSV file
 
 
-## Checklist (Personal notes):
+## Checklist (Personal notes - can ignore):
 - how do i get the hex value
 - how do we get top k?
 	count all the colors and save into a hash counter
@@ -62,11 +69,8 @@ append to CSV file
 		- pg. 233
 - we open too many goroutines
 	- due to scanner.Scan
+- close channels
 
-
-## TODO:
-- move hex calc out?
-- close channel
 
 ## Followup Questions:
 - Can we decode the image faster, or with lower quality (reduced accuracy)?
