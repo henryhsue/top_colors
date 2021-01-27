@@ -97,6 +97,7 @@ func main() {
 				- pg. 233
 	*/
 	// loop through images
+	queue := make(chan image.Image, 10)
 	for scanner.Scan() {
 		url := scanner.Text()
 		fmt.Println(url)
@@ -113,12 +114,16 @@ func main() {
 			log.Println("decode error: ", err, " skipping ", url)
 			continue
 		}
+		queue <- img
+		fmt.Println("queue size", cap(queue))
 		resp.Body.Close()
+	}
 
+	for img := range queue {
 		// count colors
 		colorCount := countColors(img)
 		top3Colors := getTop3Colors(colorCount)
-		line := fmt.Sprintf("%v, %v, %v, %v\n", url, top3Colors[0], top3Colors[1], top3Colors[2])
+		line := fmt.Sprintf("%v, %v, %v, %v\n", "<url>", top3Colors[0], top3Colors[1], top3Colors[2])
 
 		// write count to file
 		if _, err = f.WriteString(line); err != nil {
