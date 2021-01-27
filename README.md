@@ -1,3 +1,12 @@
+# How to Run:
+----------------------------------------------------------------------------------------
+1. `go run main.go`
+This runs with shortened (30 URL) inputShort.txt. You can change to 1000 URLS swapping in intput.txt in main.go
+2. after completion, view results in top3ColorsPerURL.txt (csv with url,color,color,color).
+OR while running: `tail -f top3ColorsPerURL.txt`
+Results are always rewritten with each invocation of `main`.
+
+
 # Prompt:
 ----------------------------------------------------------------------------------------
 Bellow is a list of links leading to an image, read this list of images and find 3 most

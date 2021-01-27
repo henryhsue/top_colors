@@ -20,7 +20,7 @@ type QueueElement struct {
 }
 
 func main() {
-	fmt.Println("Get top 3 colors")
+	fmt.Println("Get top 3 colors for the following images in top3ColorsPerURL.txt")
 
 	// input file
 	input, err := os.Open("inputShort.txt")
@@ -44,10 +44,10 @@ func main() {
 	// loop through images
 	queue := make(chan QueueElement, 10)
 	lines := make(chan string)
-	// NOTE: queue saturates quickly, bottlenecked by consumers,
-	// so adding parallelism at producers is not beneficial in current design,
-	// or until resources are added to consumers.
 	go func() {
+		// NOTE: queue saturates quickly, bottlenecked by consumers,
+		// so adding parallelism at producers is not beneficial in current design,
+		// or until resources are added to consumers or improving consumer performance.
 		for scanner.Scan() {
 			url := scanner.Text()
 			fmt.Println(url)
