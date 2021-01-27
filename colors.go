@@ -1,59 +1,15 @@
-/*
-Bellow is a list of links leading to an image, read this list of images and find 3 most
-prevalent colors in the RGB scheme in hexadecimal format (#000000 - #FFFFFF) in each image,
-and write the result into a CSV file in a form of url,color,color,color.
-
-Please focus on speed and resources. The solution should be able to handle input files with more than a billion URLs,
-using limited resources (e.g. 1 CPU, 512MB RAM). Keep in mind that there is no limit on the execution time,
-but make sure you are utilizing the provided resources as much as possible at any time during the program execution.
-
-Answer should be posted in a git repo.
-*/
-
-/*
-need to handle a billion URLs
-focus on speed with limited resources
-Zaneta: do not focus on algorithms, but rather how to deal with problem at scale
-	NOTE: a bit confused by this if we're limited to 1 CPU/512MB RAM (so we're not scaling?)
-download images into a queue of size 100 images
-continue downloading images if queue drops below 100
-process queue image by image
-	count the most prevalent colors for an image
-	append to CSV file
-
-STEPS:
-	download file
-	open file
-	read image pixel by pixel
-	gather counts of colors
-	sort for highest 3 counts
-	get those 3 counts into a file
-
-DONE:
-- how do i get the hex value
-- how do we get top k?
-	count all the colors and save into a hash counter
-	use a heap of size 3 to get the top 3
-	traverse heap and return
-- do we need to decode the image
-
-
-
-- can we do this probabilistically?
-*/
-
 package main
 
 import (
 	"bufio"
 	"container/heap"
-	"errors"
 	"fmt"
 	"image"
 	"image/jpeg"
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 
 	"./topk"
 )
@@ -62,7 +18,7 @@ func main() {
 	fmt.Println("Get top 3 colors")
 
 	// input file
-	input, err := os.Open("input.txt")
+	input, err := os.Open("inputShort.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -80,72 +36,74 @@ func main() {
 	}
 	defer f.Close()
 
-	// create queue
-	/*
-			TODO:
-			- how many goroutines to run?
-				limit by "Buffered Channel Semaphore"
-			- implement priority queue
-				- have goroutine download images on the side
-				- place images into a queue
-				- have another goroutine pull images off the queue
-			- use channel for buffered queue
-				- close channel after completed?
-					- or let it drain
-				- buffered channel
-				- how to make multiple goroutines read off queue?
-					- pg. 233
-		    - current issues
-				- we open too many goroutines
-					- due to scanner.Scan
-	*/
 	// loop through images
 	queue := make(chan image.Image, 10)
-	for scanner.Scan() {
-		go func() {
+	lines := make(chan string)
+	// NOTE: queue saturates quickly, bottlenecked by consumers, so adding parallelism at producers is not beneficial in current design.
+	go func() {
+		for scanner.Scan() {
 			url := scanner.Text()
 			fmt.Println(url)
-
-			// fetch image
-			resp, err := http.Get(url)
-			if err != nil {
-				log.Fatal(err)
+			img := getImageFromURL(url)
+			if img != nil {
+				queue <- img
 			}
+		}
+		if err := scanner.Err(); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
-			// decode image
-			img, err := jpeg.Decode(resp.Body)
-			if err != nil {
-				log.Println("decode error: ", err, " skipping ", url)
-				return
+	// get top 3 colors
+	// run multiple goroutines to pull off the queue and process images
+	// GOMAXPROCS defaults to number of cores
+	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
+		go func() {
+			for {
+				// pop off queue
+				img := <-queue
+
+				// count colors
+				colorCount := countColors(img)
+				top3Colors := getTop3Colors(colorCount)
+				line := fmt.Sprintf("%v, %v, %v, %v\n", "<url>", top3Colors[0], top3Colors[1], top3Colors[2])
+				lines <- line
 			}
-			queue <- img
-			fmt.Println("queue size", cap(queue))
-			resp.Body.Close()
 		}()
 	}
-	if err := scanner.Err(); err != nil {
+
+	// append results (url,color,color,color) to file
+	for {
+		line := <-lines
+		// write count to file
+		if _, err = f.WriteString(line); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+// getImageFromURL fetches an image and decodes it, then returns an image.Image.
+func getImageFromURL(url string) image.Image {
+	// fetch image
+	resp, err := http.Get(url)
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	go func() {
-		for {
-			// pop off queue
-			img := <-queue
-
-			// count colors
-			colorCount := countColors(img)
-			top3Colors := getTop3Colors(colorCount)
-			line := fmt.Sprintf("%v, %v, %v, %v\n", "<url>", top3Colors[0], top3Colors[1], top3Colors[2])
-
-			// write count to file
-			if _, err = f.WriteString(line); err != nil {
-				log.Fatal(err)
-			}
-
-		}
-	}()
+	// decode image
+	img, err := jpeg.Decode(resp.Body)
+	defer resp.Body.Close()
+	if err != nil {
+		log.Println("decode error: ", err, " skipping ", url)
+		return nil
+	}
+	return img
 }
 
+// countColors traverses all the pixels and creates a count of colors
+// More optimal methods could be used here such as probabilistic filtering
+// (e.g. count min sketch algorithm) with tradeoff of accuracy for throughput/speed.
+// Time complexity is O(N) where N is the number of pixels of image.
 func countColors(img image.Image) map[string]int {
 	colors := map[string]int{}
 	for y := 0; y < img.Bounds().Max.Y; y++ {
@@ -164,6 +122,9 @@ func countColors(img image.Image) map[string]int {
 	return colors
 }
 
+// getTop3Colors takes in the count of all colors for an image, and returns the top 3
+// use a min-heap/priority queue of size 3 to keep track of top 3 colors by count
+// function runs in O(N)*log(3) or O(N), where N = number of colors and 3 is the size of the minHeap
 func getTop3Colors(colorCount map[string]int) [3]string {
 	pq := make(topk.PriorityQueue, len(colorCount))
 	i := 0
@@ -187,5 +148,3 @@ func getTop3Colors(colorCount map[string]int) [3]string {
 	}
 	return top
 }
-
-var errInvalidFormat = errors.New("invalid format")
