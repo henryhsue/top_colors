@@ -51,15 +51,15 @@ count the most prevalent colors for an image
 append to CSV file
 
 
-## Checklist (Personal notes - can ignore):
+## (ignore, personal notes) Checklist:
 - how do i get the hex value
 - how do we get top k?
 	count all the colors and save into a hash counter
 	use a heap of size 3 to get the top 3
 	traverse heap and return
 - do we need to decode the image - yes.
-- how many goroutines to run?
-	limit by "Buffered Channel Semaphore"
+- how many goroutines to run? 
+- limit by buffered channel Semaphore
 - implement priority queue
 	- have goroutine download images on the side
 	- place images into a queue
@@ -68,8 +68,6 @@ append to CSV file
 	- close channel after completed?
 		- or let it drain
 	- buffered channel
-	- how to make multiple goroutines read off queue?
-		- pg. 233
 - we open too many goroutines
 	- due to scanner.Scan
 - close channels
@@ -78,3 +76,4 @@ append to CSV file
 ## Followup Questions:
 - Can we decode the image faster, or with lower quality (reduced accuracy)?
 - are we allowed more probabilistic approaches?
+- are we allowed to run multiple 1CPU/512MB machines. 
