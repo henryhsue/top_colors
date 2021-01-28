@@ -39,16 +39,16 @@ will need to break apart the image into multiple subproblems. A system with a ma
 create a Producer - Consumer pipeline
 
 ### Producers:
-download images into a queue of size X images
-    perform downloading with a set of goroutines
-    pause downloading when queue is full
-    continue downloading images if queue drops below X
+- download images into a queue of size X images
+- perform downloading with a set of goroutines
+- pause downloading when queue is full
+- continue downloading images if queue drops below X
 
 ### Consumers:
-pull off the queue (frees up downloading again if queue was full)
-count color frequency image by image
-count the most prevalent colors for an image
-append to CSV file
+- pull off the queue (frees up downloading again if queue was full)
+- count color frequency image by image
+- count the most prevalent colors for an image
+- append to CSV file
 
 
 ## (ignore, personal notes) Checklist:
