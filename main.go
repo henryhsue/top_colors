@@ -41,9 +41,11 @@ func main() {
 	}
 	defer f.Close()
 
+	// set up channels
+	queue := make(chan QueueElement, 10) // stores images to be processed
+	lines := make(chan string, 10)       // stores output lines before writing to disk
+
 	// loop through images
-	queue := make(chan QueueElement, 10)
-	lines := make(chan string)
 	go func() {
 		// NOTE: queue saturates quickly, bottlenecked by consumers,
 		// so adding parallelism at producers is not beneficial in current design,
